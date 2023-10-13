@@ -34,10 +34,10 @@
             <h2 class="text-xl capitalize mb-3 ml-7 text-purple-600">
                 results for : {{ searchValue }}
             </h2>
-            <Loading v-if="wait" />
+            <Loading v-if="$MoviesStore.isLoadig" />
             <div v-else
                 class="grid justify-center sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
-                <Movie v-for="Movie in data" :key="Movie.id" :id="Movie.id" :title="Movie.title"
+                <Movie v-for="Movie in $MoviesStore.search" :key="Movie.id" :id="Movie.id" :title="Movie.title"
             :vote_average="Movie.vote_average" :poster_path="Movie.poster_path"/>
             </div>
         </div>
@@ -48,44 +48,20 @@
 const SearchBar: boolean = ref(false);
 let keyword: string;
 const searchValue = ref("");
-const wait = ref(true);
-interface resType {
-    backdrop_path: string;
-    first_air_date: string;
-    genre_ids: number[];
-    id: number;
-    title: string;
-    origin_country: string[];
-    original_language: string;
-    original_name: string;
-    overview: string;
-    popularity: number;
-    poster_path: string;
-    vote_average: number;
-    vote_count: number;
-}
-let data: resType[];
-
+const { $MoviesStore } = useNuxtApp();
 watch(searchValue, () => {
-    wait.value = true;
     keyword = searchValue.value;
 });
 const options = {
     method: 'GET',
     headers: {
         accept: 'application/json',
-        Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxYWJiMDZhOTk5ODAxMzlkZjI4MDkyMGUxNGExYzFkYyIsInN1YiI6IjY0ODVmYjkzYzlkYmY5MDBjNTcyNGRiNiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.9nPXI0ticpVdpUZjx0levKXkjUeb2v4ctFF05x7kVlQ'
+        Authorization: process.env.apiauth,
     }
 };
-const click = () => {
-    fetch(`https://api.themoviedb.org/3/search/movie?query=${keyword}&include_adult=false&language=en-US&page=1`, options)
-        .then(response => response.json())
-        .then(function(response){
-            const results :resType[] = response.results;
-            data = results;
-            wait.value = false;
-        })
-};
+const click = async() => {
+    $MoviesStore.fetchsearch(keyword , options)
+}
 </script>
 
 <style scoped>
@@ -102,4 +78,4 @@ const click = () => {
     transform: translateX(100px);
     opacity: 0;
 }
-</style>pini
+</style>
